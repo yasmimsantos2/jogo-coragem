@@ -8,63 +8,52 @@ const endContent = document.getElementById('end-content');
 
 let jumps = 0;
 let gameActive = false;
+let selectedStyle = 1;
 let loop;
 
 function startGame(styleNumber) {
-    // 1. Reset imediato de variáveis
-    gameActive = true;
+    selectedStyle = styleNumber;
     jumps = 0;
     if (jumpDisplay) jumpDisplay.innerText = "0";
+    gameActive = true;
 
-    // 2. Troca de telas
     screenStart.style.display = 'none';
-    screenGame.style.display = 'flex';
+    screenGame.style.display = 'block';
     screenEnd.style.display = 'none';
 
-    // 3. Define personagem
     const imgMap = { 1: 'Darlin.png', 2: 'V2.png', 3: 'V3.png' };
     jogadora.src = `IMG/${imgMap[styleNumber]}`;
 
-    // 4. Reset do Cano (Pipe) - ESSENCIAL PARA NÃO DAR GAME OVER DIRETO
-    pipe.style.animation = 'none';
-    void pipe.offsetWidth; // Truque para resetar animação
     pipe.style.left = '';
+    pipe.classList.remove('pipe-animation');
+    void pipe.offsetWidth;
     pipe.classList.add('pipe-animation');
-    pipe.style.animation = ''; // Reativa a animação do CSS
 
     runLoop();
 }
 
 const jump = (e) => {
-    // Bloqueia qualquer outra ação do celular (zoom/scroll) para focar no pulo
-    if (e) {
-        if (e.cancelable) e.preventDefault();
-    }
-    
+    if (e && e.cancelable) e.preventDefault();
     if (!gameActive || jogadora.classList.contains('jump')) return;
-    
+
     jogadora.classList.add('jump');
     jumps++;
     if (jumpDisplay) jumpDisplay.innerText = jumps;
-    
-    setTimeout(() => {
-        jogadora.classList.remove('jump');
-    }, 500);
+
+    if (jumps >= 10) victory();
+
+    setTimeout(() => jogadora.classList.remove('jump'), 500);
 };
 
 const runLoop = () => {
     if (loop) clearInterval(loop);
-    
     loop = setInterval(() => {
         if (!gameActive) return;
-
         const pipePos = pipe.offsetLeft;
         const jogadoraPos = +window.getComputedStyle(jogadora).bottom.replace('px', '');
-        
-        // AJUSTE DE COLISÃO PARA CELULAR (Mais permissivo para não morrer sem querer)
-        const hitZone = window.innerWidth < 600 ? 70 : 100;
+        const limit = window.innerWidth < 600 ? 80 : 120;
 
-        if (pipePos <= hitZone && pipePos > 0 && jogadoraPos < 70) {
+        if (pipePos <= limit && pipePos > 0 && jogadoraPos < 80) {
             gameActive = false;
             clearInterval(loop);
             gameOver();
@@ -73,28 +62,47 @@ const runLoop = () => {
 };
 
 function gameOver() {
-    gameActive = false;
     pipe.style.animation = 'none';
     pipe.style.left = `${pipe.offsetLeft}px`;
-    
     screenGame.style.display = 'none';
     screenEnd.style.display = 'flex';
-    
-    // Mantendo seu botão de recomeçar
-    endContent.innerHTML = `<button onclick="location.reload()" style="padding:15px 30px; background:red; color:white; border:none; border-radius:50px; cursor:pointer; font-weight:bold;">RECOMEÇAR</button>`;
+
+    let monsterImg = (selectedStyle === 2 || selectedStyle === 3) ? "IMG/MONSTRO.jpeg" : "IMG/Monstro2.png";
+    const deadImg = `IMG/Gameover${selectedStyle}.png`;
+    screenEnd.style.backgroundImage = `url('${monsterImg}')`;
+    screenEnd.style.backgroundSize = "cover";
+
+    endContent.innerHTML = `
+        <div class="game-over-content-overlay">
+            <h2 class="sombrio-title">CONEXÃO INERTE</h2>
+            <img src="${deadImg}" class="player-dead-overlay">
+            <div class="enigma-text">
+                "O monstro que você alimenta no escuro do seu medo cresce com o seu silêncio."
+            </div>
+            <button onclick="location.reload()" style="margin-top:30px; background:#660000; color:#fff; padding:15px 40px; border-radius:50px; border:none; font-weight:bold; cursor:pointer;">RECOMEÇAR JORNADA</button>
+        </div>
+    `;
 }
 
-// --- CONTROLES (A PARTE QUE FAZ FUNCIONAR NO CELULAR) ---
+function victory() {
+    gameActive = false;
+    clearInterval(loop);
+    screenGame.style.display = 'none';
+    screenEnd.style.display = 'flex';
+    screenEnd.style.background = "#050505";
 
-// Teclado
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') jump();
-});
+    endContent.innerHTML = `
+       <div class="victory-container">
+            <img src="IMG/Espelho.png" style="width:180px; filter:drop-shadow(0 0 20px #fff);">
+            <h2 class="game-title" style="font-size:2.5rem; margin-top:20px;">REDENÇÃO</h2>
+            <div class="marcos-quote">
+                <p>"A maior coragem é enfrentar a si mesmo e se perdoar."</p>
+                <br><strong>— MARCOS LACERDA</strong>
+            </div>
+            <button onclick="location.reload()" style="margin-top:35px; background:#fff; color:#000; padding:15px 40px; border-radius:50px; border:none; font-weight:bold; cursor:pointer;">RECOMEÇAR A VIDA</button>
+        </div>
+    `;
+}
 
-// Toque na tela (QUALQUER LUGAR DA TELA)
-// Usamos 'pointerdown' que funciona melhor em navegadores mobile modernos que o touchstart
-document.addEventListener('pointerdown', (e) => {
-    if (gameActive) {
-        jump(e);
-    }
-}, { passive: false });
+document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') jump(); });
+document.addEventListener('touchstart', (e) => { if (gameActive) jump(e); }, { passive: false });
