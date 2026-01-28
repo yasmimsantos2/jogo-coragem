@@ -10,10 +10,21 @@ const gameBoard = document.querySelector('.Game-Board');
 let jumps = 0;
 let gameActive = false;
 let selectedStyle = 1;
+let loop; // Variável global para o intervalo
+
+// FIX: Ajuste para altura real no mobile (evita problemas com barras de navegação)
+const updateVH = () => {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+};
+window.addEventListener('resize', updateVH);
+updateVH();
 
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log("Erro ao entrar em tela cheia");
+        });
     } else {
         document.exitFullscreen();
     }
@@ -25,7 +36,6 @@ function startGame(styleNumber) {
     jumpDisplay.innerText = "0";
     gameActive = true;
 
-    // Reset de Telas e Estilos
     screenEnd.style.backgroundImage = 'none';
     screenEnd.classList.remove('screen-game-over-full');
     screenStart.style.display = 'none';
@@ -39,25 +49,41 @@ function startGame(styleNumber) {
     runLoop();
 }
 
-const jump = () => {
+const jump = (e) => {
+    // Previne zoom ou scroll acidental no mobile ao tocar
+    if (e && e.type === 'touchstart') e.preventDefault();
+    
     if (!gameActive || jogadora.classList.contains('jump')) return;
+    
     jogadora.classList.add('jump');
     jumps++;
     jumpDisplay.innerText = jumps;
 
-    // Altere para 10 se quiser o jogo completo, deixei 1 conforme seu código anterior
     if (jumps >= 10) victory();
 
     setTimeout(() => jogadora.classList.remove('jump'), 500);
 };
 
 const runLoop = () => {
-    const loop = setInterval(() => {
-        if (!gameActive) { clearInterval(loop); return; }
-        const pipePos = pipe.offsetLeft;
-        const jogadoraPos = +window.getComputedStyle(jogadora).bottom.replace('px', '');
+    // Limpa qualquer loop anterior antes de começar
+    if (loop) clearInterval(loop);
 
-        if (pipePos <= 120 && pipePos > 0 && jogadoraPos < 80) {
+    loop = setInterval(() => {
+        if (!gameActive) { 
+            clearInterval(loop); 
+            return; 
+        }
+
+        const pipePos = pipe.offsetLeft;
+        // Pega o valor da altura do personagem dinamicamente
+        const jogadoraPos = +window.getComputedStyle(jogadora).bottom.replace('px', '');
+        
+        // AJUSTE MOBILE: No celular, as medidas mudam. 
+        // Verificamos a largura do personagem para uma colisão mais precisa
+        const jogadoraWidth = jogadora.offsetWidth;
+        const colisionPoint = jogadoraWidth + 20; 
+
+        if (pipePos <= colisionPoint && pipePos > 0 && jogadoraPos < 80) {
             gameActive = false;
             clearInterval(loop);
             gameOver();
@@ -67,29 +93,24 @@ const runLoop = () => {
 
 function gameOver() {
     pipe.style.animation = 'none';
+    pipe.style.left = `${pipe.offsetLeft}px`; // Trava o cano onde ele bateu
+    
     screenGame.style.display = 'none';
     screenEnd.style.display = 'flex';
 
     let monsterImg = (selectedStyle === 2 || selectedStyle === 3) ? "IMG/MONSTRO.jpeg" : "IMG/Monstro2.png";
     const deadImg = `IMG/Gameover${selectedStyle}.png`;
 
-    // Aplica o monstro como fundo da tela
     screenEnd.style.backgroundImage = `url('${monsterImg}')`;
     screenEnd.classList.add('screen-game-over-full');
 
     endContent.innerHTML = `
         <div class="game-over-content-overlay">
             <h2 class="sombrio-title">CONEXÃO INERTE</h2>
-            
             <img src="${deadImg}" class="player-dead-overlay">
-            
             <div class="enigma-text">
-                "Muitos caminham, mas poucos estão de fato aqui. <br>
-                O monstro que você alimenta no escuro do seu medo cresce com o seu silêncio. <br>
-                Quando você acende a luz da consciência, percebe que o monstro era apenas a sua própria sombra projetada na parede."
+                "O monstro que você alimenta no escuro do seu medo cresce com o seu silêncio."
             </div>
-
-            <!-- Botão único centralizado -->
             <button onclick="location.reload()" class="btn-restart" style="margin-top: 30px; background: #660000; color: #fff; box-shadow: 0 0 15px #ff0000; border: none; padding: 15px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; text-transform: uppercase;">
                 RECOMEÇAR JORNADA
             </button>
@@ -99,32 +120,22 @@ function gameOver() {
 
 function victory() {
     gameActive = false;
+    clearInterval(loop);
     pipe.style.animation = 'none';
     screenGame.style.display = 'none';
     screenEnd.style.display = 'flex';
     screenEnd.style.background = "#050505";
-    screenEnd.style.backgroundImage = 'none'; // Garante que o monstro não apareça na vitória
+    screenEnd.style.backgroundImage = 'none';
 
     endContent.innerHTML = `
        <div class="victory-container" style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-            <img src="IMG/Espelho.png" class="mirror-img" style="width: 200px; filter: drop-shadow(0 0 30px #fff); image-rendering: pixelated;">
-            
-            <h2 class="game-title" style="color: #fff; text-shadow: 0 0 20px #4A74F3; font-size: 3rem; margin-top: 20px;">REDENÇÃO</h2>
-            
-            <div class="marcos-quote" style="border-left: 5px solid #fff; padding: 25px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); margin-top: 20px; max-width: 600px;">
-                <p style="font-size: 1.2rem; line-height: 1.7; color: #fff; text-align: left;">
-                    "A maior coragem que você pode ter não é a de enfrentar os outros, mas a de enfrentar a si mesmo e decidir se perdoar. <br><br>
-                    Agora você é livre para ser quem realmente é."
-                </p>
+            <img src="IMG/Espelho.png" class="mirror-img">
+            <h2 class="game-title" style="color: #fff; text-shadow: 0 0 20px #4A74F3; margin-top: 20px;">REDENÇÃO</h2>
+            <div class="marcos-quote">
+                <p>"A maior coragem é a de enfrentar a si mesmo e decidir se perdoar."</p>
                 <br>
-                <strong style="color: #4A74F3; font-size: 1rem; letter-spacing: 3px;">— MARCOS LACERDA</strong>
+                <strong style="color: #4A74F3;">— MARCOS LACERDA</strong>
             </div>
-
-            <p class="dark-truth" style="margin-top: 30px; color: #fff; font-weight: bold; letter-spacing: 2px;">
-                VOCÊ SE RECONHECEU NO REFLEXO.
-            </p>
-
-            <!-- Botão único centralizado -->
             <button onclick="location.reload()" class="btn-restart" style="margin-top: 35px; background: #fff; color: #000; box-shadow: 0 0 20px #fff; border: none; padding: 15px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; text-transform: uppercase;">
                 RECOMEÇAR A VIDA
             </button>
@@ -132,7 +143,10 @@ function victory() {
     `;
 }
 
+// LISTENERS
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') jump();
 });
-document.addEventListener('touchstart', jump);
+
+// FIX MOBILE: Adicionado { passive: false } para permitir o preventDefault()
+document.addEventListener('touchstart', jump, { passive: false });

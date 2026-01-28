@@ -1,9 +1,20 @@
+
 /* CONFIGURAÇÕES GERAIS */
 * { 
     margin: 0; 
     padding: 0; 
     box-sizing: border-box; 
     font-family: 'Poppins', Arial, sans-serif; 
+    /* Previne seleção de texto e realce de toque no mobile */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary-blue: #2649B2;
+    --accent-purple: #8E7DE3;
+    --dark-bg: #020205;
+    --vh: 1vh; /* Variável para altura real do mobile */
 }
 
 body { 
@@ -11,19 +22,22 @@ body {
     display: flex; 
     justify-content: center; 
     align-items: center; 
-    height: 100vh; 
+    /* Altura dinâmica para evitar problemas com barra de endereços do navegador */
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     width: 100vw; 
     overflow: hidden; 
+    position: fixed; /* Evita o "pull-to-refresh" */
 }
 
 /* TABULEIRO PRINCIPAL */
 .Game-Board {
-    width: 100vw; 
-    height: 100vh;
-    background: radial-gradient(circle at bottom, #1a1a2e 0%, #020205 100%);
+    width: 100%; 
+    height: 100%;
+    background: radial-gradient(circle at bottom, #1a1a2e 0%, var(--dark-bg) 100%);
     position: relative; 
     overflow: hidden; 
-    border-bottom: 15px solid #000;
+    border-bottom: 12px solid #000;
 }
 
 .stars-container {
@@ -32,14 +46,14 @@ body {
     height: 100%;
     background-image: radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0,0,0,0));
     background-repeat: repeat; 
-    background-size: 300px 300px; 
+    background-size: 250px 250px; 
     opacity: 0.4;
+    z-index: 1;
 }
 
 .screen {
     position: absolute; 
-    width: 100%; 
-    height: 100%;
+    inset: 0;
     display: flex; 
     flex-direction: column; 
     align-items: center; 
@@ -52,18 +66,20 @@ body {
 
 /* TÍTULOS E EFEITOS */
 .game-title { 
-    font-size: clamp(2.5rem, 8vw, 6rem); 
-    color: #8E7DE3; 
-    text-shadow: 4px 4px #2649B2; 
-    letter-spacing: 10px; 
+    font-size: clamp(2rem, 10vw, 5rem); 
+    color: var(--accent-purple); 
+    text-shadow: 4px 4px var(--primary-blue); 
+    letter-spacing: clamp(4px, 2vw, 10px); 
     font-weight: 900; 
+    margin-bottom: 10px;
 }
 
 .sombrio-title { 
-    font-size: clamp(2rem, 6vw, 4rem); 
+    font-size: clamp(1.8rem, 8vw, 4rem); 
     color: #ff4d4d; 
     text-shadow: 3px 3px 0px #000; 
     animation: glitch-red 0.3s infinite;
+    margin-bottom: 20px;
 }
 
 @keyframes glitch-red {
@@ -75,10 +91,11 @@ body {
 /* SELEÇÃO DE PERSONAGEM */
 .character-selection { 
     display: flex; 
-    gap: 20px; 
+    gap: 15px; 
     margin-top: 20px; 
     flex-wrap: wrap; 
     justify-content: center; 
+    max-width: 90vw;
 }
 
 .char-card { 
@@ -88,22 +105,28 @@ body {
     cursor: pointer; 
     border: 1px solid rgba(255,255,255,0.1); 
     transition: 0.3s; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.char-card:hover { 
-    transform: scale(1.1); 
+.char-card:hover, .char-card:active { 
+    transform: scale(1.05); 
     background: rgba(38, 73, 178, 0.3); 
     border-color: #4A74F3; 
 }
 
-.char-card img { width: 80px; image-rendering: pixelated; }
+.char-card img { 
+    width: clamp(50px, 12vw, 80px); 
+    image-rendering: pixelated; 
+}
 
 /* ELEMENTOS DO JOGO */
 .Jogadora { 
     position: absolute; 
     bottom: 0; 
-    width: clamp(80px, 15vw, 130px); 
-    left: 10vw; 
+    width: clamp(65px, 18vw, 120px); 
+    left: 5vw; 
     z-index: 6; 
     image-rendering: pixelated; 
 }
@@ -111,19 +134,31 @@ body {
 .pipe { 
     position: absolute; 
     bottom: 0; 
-    width: clamp(70px, 12vw, 120px); 
+    width: clamp(50px, 14vw, 100px); 
     left: 100%; 
     z-index: 5; 
     image-rendering: pixelated; 
 }
 
-.pipe-animation { animation: pipe-move 1.5s infinite linear; }
-@keyframes pipe-move { from { left: 100%; } to { left: -150px; } }
+.pipe-animation { 
+    animation: pipe-move 1.6s infinite linear; 
+}
 
-.jump { animation: jump-anim 500ms ease-out; }
-@keyframes jump-anim { 0%, 100% { bottom: 0; } 50% { bottom: 35vh; } }
+@keyframes pipe-move { 
+    from { left: 100%; } 
+    to { left: -120px; } 
+}
 
-/* ESTRUTURA DE GAME OVER (IMERSIVO) */
+.jump { 
+    animation: jump-anim 600ms ease-out; 
+}
+
+@keyframes jump-anim { 
+    0%, 100% { bottom: 0; } 
+    50% { bottom: clamp(150px, 30vh, 350px); } 
+}
+
+/* GAME OVER E VITÓRIA (IMERSIVO) */
 .screen-game-over-full {
     background-size: cover;
     background-position: center;
@@ -131,7 +166,7 @@ body {
 }
 
 .game-over-content-overlay {
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.75);
     width: 100%; 
     height: 100%;
     display: flex; 
@@ -139,12 +174,12 @@ body {
     align-items: center; 
     justify-content: center;
     padding: 20px; 
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
 }
 
 .player-dead-overlay {
-    width: clamp(140px, 25vw, 200px);
-    margin: 20px 0;
+    width: clamp(120px, 25vw, 180px);
+    margin: 15px 0;
     filter: brightness(0.8) drop-shadow(0 0 10px #000);
     image-rendering: pixelated;
     z-index: 20;
@@ -153,11 +188,12 @@ body {
 .enigma-text { 
     color: #ccc; 
     font-style: italic; 
-    font-size: clamp(0.9rem, 2.5vw, 1.2rem); 
-    max-width: 700px; 
-    line-height: 1.6; 
+    font-size: clamp(0.85rem, 3vw, 1.1rem); 
+    max-width: 600px; 
+    line-height: 1.5; 
     text-shadow: 2px 2px 4px #000; 
-    margin-bottom: 20px; 
+    margin-bottom: 20px;
+    padding: 0 10px;
 }
 
 /* VITÓRIA */
@@ -166,59 +202,84 @@ body {
     flex-direction: column; 
     align-items: center; 
     width: 100%;
+    max-width: 800px;
 }
 
 .mirror-img { 
-    width: 200px; 
+    width: clamp(140px, 30vw, 220px); 
     filter: drop-shadow(0 0 30px #fff); 
     image-rendering: pixelated; 
 }
 
 .marcos-quote { 
     font-style: italic; 
-    border-left: 5px solid #fff; 
-    padding: 20px; 
-    background: rgba(255, 255, 255, 0.1); 
+    border-left: 4px solid #fff; 
+    padding: 15px 20px; 
+    background: rgba(255, 255, 255, 0.08); 
     backdrop-filter: blur(5px); 
     text-align: left; 
-    max-width: 600px; 
+    max-width: 90%; 
     margin: 20px 0;
+}
+
+.marcos-quote p {
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    line-height: 1.6;
 }
 
 /* UI ELEMENTS */
 .score { 
     position: absolute; 
-    top: 20px; 
+    top: env(safe-area-inset-top, 20px); /* Respeita o "notch" do iPhone */
     left: 20px; 
-    font-size: 1.5rem; 
+    font-size: clamp(1.2rem, 4vw, 1.8rem); 
     font-weight: bold; 
     color: #fff; 
     z-index: 20; 
+    text-shadow: 2px 2px #000;
 }
 
 .fullscreen-btn { 
     position: absolute; 
-    top: 20px; 
+    top: env(safe-area-inset-top, 20px); 
     right: 20px; 
     z-index: 100; 
     background: rgba(255,255,255,0.1); 
     color: white; 
     border: 1px solid white; 
-    border-radius: 50%; 
-    width: 40px; 
-    height: 40px; 
+    border-radius: 25%; /* Estilo 25% borderRadius sugerido */
+    width: 44px; /* Tamanho mínimo recomendado para toque */
+    height: 44px; 
     cursor: pointer; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* BOTÃO ÚNICO DE RECOMEÇAR (Estilo Base) */
+/* BOTÃO DE RECOMEÇAR */
 .btn-restart {
     transition: 0.3s;
     text-decoration: none;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.9rem;
     letter-spacing: 2px;
+    border-radius: 25px; /* Bordas arredondadas para mobile */
+    padding: 15px 35px;
+    cursor: pointer;
+    border: none;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
-.btn-restart:hover {
-    transform: scale(1.1);
+.btn-restart:hover, .btn-restart:active {
+    transform: scale(1.05);
+}
+
+/* Ajustes para telas muito pequenas ou paisagem (landscape) */
+@media (max-height: 450px) {
+    .game-title { font-size: 1.5rem; }
+    .char-card img { width: 40px; }
+    .enigma-text { display: none; } /* Esconde texto longo no modo paisagem curto */
+    .Jogadora { width: 50px; }
+    .pipe { width: 40px; }
 }
