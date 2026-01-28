@@ -1,130 +1,169 @@
-/* --- CONFIGURAÇÃO DE TELA E ROLAGEM --- */
-html,
-body {
+/* CONFIGURAÇÕES GERAIS */
+* {
     margin: 0;
     padding: 0;
-    width: 100%;
-    /* O segredo está aqui: min-height garante que o fundo cubra tudo, mesmo com rolagem */
-    min-height: 100vh;
-    background-color: #0b0b0e;
-    color: white;
-    font-family: Arial, sans-serif;
-
-    /* Ativa a rolagem vertical e remove a horizontal indesejada */
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: block;
-    /* Deixa a rolagem mais suave no celular */
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* --- CONTAINER DO JOGO --- */
-.Game-Board {
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    /* Padding generoso para o conteúdo não colar nas bordas do celular */
-    padding: 20px 15px 80px 15px; 
-    text-align: center;
     box-sizing: border-box;
+    font-family: 'Poppins', Arial, sans-serif;
 }
 
-h1 {
-    /* clamp ajuda a fonte a diminuir sozinha em telas pequenas */
-    font-size: clamp(1.8rem, 10vw, 3.5rem);
-    color: #4A74F3;
-    letter-spacing: 5px;
-    margin-bottom: 20px;
-}
-
-.intro-text p {
-    font-size: clamp(1rem, 4vw, 1.2rem);
-    line-height: 1.5;
-    margin-bottom: 15px;
-    padding: 0 10px;
-}
-
-/* --- LAYOUT DOS PERSONAGENS --- */
-.character-selection {
-    display: flex;
-    /* flex-wrap: wrap faz os personagens "pularem" para baixo no celular */
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 30px;
-}
-
-.character-card {
-    background: #161a2e;
-    border: 2px solid #2649B2;
-    border-radius: 15px;
-    padding: 15px;
-    /* Largura flexível para não quebrar em telas minúsculas */
-    width: 140px; 
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.character-card:hover {
-    transform: translateY(-5px);
-    border-color: #4A74F3;
-}
-
-.character-card img {
-    width: 100%;
-    max-width: 100px;
-    height: auto;
-    image-rendering: pixelated;
-    margin-bottom: 10px;
-}
-
-.btn-select {
-    background: #4A74F3;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-    margin-top: 10px;
-}
-
-/* --- AJUSTES ESPECÍFICOS PARA TELAS MUITO PEQUENAS (Menores que 350px) --- */
-@media (max-width: 350px) {
-    .character-card {
-        width: 120px; /* Diminui um pouco mais o card em telas tipo iPhone SE antigo */
-    }
-    h1 {
-        letter-spacing: 2px;
-    }
-}
-
-/* --- ESTILO DA BARRA DE ROLAGEM --- */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #0b0b0e;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #2649B2;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #4A74F3;
-}
-
-/* --- CLASSES EXTRAS PARA O JOGO (IMPORTANTE PARA O JS) --- */
-#screen-game, #screen-end {
-    width: 100%;
+body {
+    background-color: #000;
     height: 100vh;
-    display: none; /* Começam escondidos */
+    width: 100vw;
+    overflow: hidden;
+    /* Desativa gestos do navegador para o pulo ser imediato */
+    touch-action: manipulation;
+}
+
+.Game-Board {
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at bottom, #1a1a2e 0%, #020205 100%);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 15px solid #000;
+}
+
+.stars-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0, 0, 0, 0));
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    opacity: 0.4;
+}
+
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    z-index: 10;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    /* LIBERA ROLAGEM NO CELULAR */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* TÍTULOS */
+.game-title {
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    color: #8E7DE3;
+    text-shadow: 4px 4px #2649B2;
+    letter-spacing: 10px;
+    font-weight: 900;
+}
+
+/* PERSONAGENS */
+.character-selection {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-bottom: 50px;
+    /* Espaço para não cortar no fim */
+}
+
+.char-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.3s;
+}
+
+.char-card img {
+    width: 80px;
+    image-rendering: pixelated;
+}
+
+/* JOGO */
+.Jogadora {
+    position: absolute;
+    bottom: 0;
+    width: clamp(80px, 15vw, 130px);
+    left: 10vw;
+    z-index: 6;
+    image-rendering: pixelated;
+}
+
+.pipe {
+    position: absolute;
+    bottom: 0;
+    width: clamp(70px, 12vw, 120px);
+    left: 100%;
+    z-index: 5;
+    image-rendering: pixelated;
+}
+
+.pipe-animation {
+    animation: pipe-move 1.5s infinite linear;
+}
+
+@keyframes pipe-move {
+    from {
+        left: 100%;
+    }
+
+    to {
+        left: -150px;
+    }
+}
+
+.jump {
+    animation: jump-anim 500ms ease-out;
+}
+
+@keyframes jump-anim {
+
+    0%,
+    100% {
+        bottom: 0;
+    }
+
+    50% {
+        bottom: 35vh;
+    }
+}
+
+/* FIM DE JOGO */
+.screen-game-over-full {
+    background-size: cover;
+    background-position: center;
+}
+
+.game-over-content-overlay {
+    background: rgba(0, 0, 0, 0.65);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.5rem;
+    z-index: 20;
+}
+
+/* BARRA DE ROLAGEM */
+.screen::-webkit-scrollbar {
+    width: 5px;
+}
+
+.screen::-webkit-scrollbar-thumb {
+    background: #8E7DE3;
+    border-radius: 10px;
 }

@@ -5,85 +5,66 @@ const screenStart = document.getElementById('screen-start');
 const screenGame = document.getElementById('screen-game');
 const screenEnd = document.getElementById('screen-end');
 const endContent = document.getElementById('end-content');
-const gameBoard = document.querySelector('.Game-Board');
 
 let jumps = 0;
 let gameActive = false;
-let selectedStyle = 1;
-let loop; // Variável global para o intervalo
-
-// FIX: Ajuste para altura real no mobile (evita problemas com barras de navegação)
-const updateVH = () => {
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-};
-window.addEventListener('resize', updateVH);
-updateVH();
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.log("Erro ao entrar em tela cheia");
-        });
-    } else {
-        document.exitFullscreen();
-    }
-}
+let loop;
 
 function startGame(styleNumber) {
-    selectedStyle = styleNumber;
-    jumps = 0;
-    jumpDisplay.innerText = "0";
+    // 1. Reset imediato de variáveis
     gameActive = true;
+    jumps = 0;
+    if (jumpDisplay) jumpDisplay.innerText = "0";
 
-    screenEnd.style.backgroundImage = 'none';
-    screenEnd.classList.remove('screen-game-over-full');
+    // 2. Troca de telas
     screenStart.style.display = 'none';
-    screenGame.style.display = 'block';
+    screenGame.style.display = 'flex';
     screenEnd.style.display = 'none';
 
+    // 3. Define personagem
     const imgMap = { 1: 'Darlin.png', 2: 'V2.png', 3: 'V3.png' };
     jogadora.src = `IMG/${imgMap[styleNumber]}`;
 
+    // 4. Reset do Cano (Pipe) - ESSENCIAL PARA NÃO DAR GAME OVER DIRETO
+    pipe.style.animation = 'none';
+    void pipe.offsetWidth; // Truque para resetar animação
+    pipe.style.left = '';
     pipe.classList.add('pipe-animation');
+    pipe.style.animation = ''; // Reativa a animação do CSS
+
     runLoop();
 }
 
 const jump = (e) => {
-    // Previne zoom ou scroll acidental no mobile ao tocar
-    if (e && e.type === 'touchstart') e.preventDefault();
+    // Bloqueia qualquer outra ação do celular (zoom/scroll) para focar no pulo
+    if (e) {
+        if (e.cancelable) e.preventDefault();
+    }
     
     if (!gameActive || jogadora.classList.contains('jump')) return;
     
     jogadora.classList.add('jump');
     jumps++;
-    jumpDisplay.innerText = jumps;
-
-    if (jumps >= 10) victory();
-
-    setTimeout(() => jogadora.classList.remove('jump'), 500);
+    if (jumpDisplay) jumpDisplay.innerText = jumps;
+    
+    setTimeout(() => {
+        jogadora.classList.remove('jump');
+    }, 500);
 };
 
 const runLoop = () => {
-    // Limpa qualquer loop anterior antes de começar
     if (loop) clearInterval(loop);
-
+    
     loop = setInterval(() => {
-        if (!gameActive) { 
-            clearInterval(loop); 
-            return; 
-        }
+        if (!gameActive) return;
 
         const pipePos = pipe.offsetLeft;
-        // Pega o valor da altura do personagem dinamicamente
         const jogadoraPos = +window.getComputedStyle(jogadora).bottom.replace('px', '');
         
-        // AJUSTE MOBILE: No celular, as medidas mudam. 
-        // Verificamos a largura do personagem para uma colisão mais precisa
-        const jogadoraWidth = jogadora.offsetWidth;
-        const colisionPoint = jogadoraWidth + 20; 
+        // AJUSTE DE COLISÃO PARA CELULAR (Mais permissivo para não morrer sem querer)
+        const hitZone = window.innerWidth < 600 ? 70 : 100;
 
-        if (pipePos <= colisionPoint && pipePos > 0 && jogadoraPos < 80) {
+        if (pipePos <= hitZone && pipePos > 0 && jogadoraPos < 70) {
             gameActive = false;
             clearInterval(loop);
             gameOver();
@@ -92,61 +73,28 @@ const runLoop = () => {
 };
 
 function gameOver() {
+    gameActive = false;
     pipe.style.animation = 'none';
-    pipe.style.left = `${pipe.offsetLeft}px`; // Trava o cano onde ele bateu
+    pipe.style.left = `${pipe.offsetLeft}px`;
     
     screenGame.style.display = 'none';
     screenEnd.style.display = 'flex';
-
-    let monsterImg = (selectedStyle === 2 || selectedStyle === 3) ? "IMG/MONSTRO.jpeg" : "IMG/Monstro2.png";
-    const deadImg = `IMG/Gameover${selectedStyle}.png`;
-
-    screenEnd.style.backgroundImage = `url('${monsterImg}')`;
-    screenEnd.classList.add('screen-game-over-full');
-
-    endContent.innerHTML = `
-        <div class="game-over-content-overlay">
-            <h2 class="sombrio-title">CONEXÃO INERTE</h2>
-            <img src="${deadImg}" class="player-dead-overlay">
-            <div class="enigma-text">
-                "O monstro que você alimenta no escuro do seu medo cresce com o seu silêncio."
-            </div>
-            <button onclick="location.reload()" class="btn-restart" style="margin-top: 30px; background: #660000; color: #fff; box-shadow: 0 0 15px #ff0000; border: none; padding: 15px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; text-transform: uppercase;">
-                RECOMEÇAR JORNADA
-            </button>
-        </div>
-    `;
+    
+    // Mantendo seu botão de recomeçar
+    endContent.innerHTML = `<button onclick="location.reload()" style="padding:15px 30px; background:red; color:white; border:none; border-radius:50px; cursor:pointer; font-weight:bold;">RECOMEÇAR</button>`;
 }
 
-function victory() {
-    gameActive = false;
-    clearInterval(loop);
-    pipe.style.animation = 'none';
-    screenGame.style.display = 'none';
-    screenEnd.style.display = 'flex';
-    screenEnd.style.background = "#050505";
-    screenEnd.style.backgroundImage = 'none';
+// --- CONTROLES (A PARTE QUE FAZ FUNCIONAR NO CELULAR) ---
 
-    endContent.innerHTML = `
-       <div class="victory-container" style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-            <img src="IMG/Espelho.png" class="mirror-img">
-            <h2 class="game-title" style="color: #fff; text-shadow: 0 0 20px #4A74F3; margin-top: 20px;">REDENÇÃO</h2>
-            <div class="marcos-quote">
-                <p>"A maior coragem é a de enfrentar a si mesmo e decidir se perdoar."</p>
-                <br>
-                <strong style="color: #4A74F3;">— MARCOS LACERDA</strong>
-            </div>
-            <button onclick="location.reload()" class="btn-restart" style="margin-top: 35px; background: #fff; color: #000; box-shadow: 0 0 20px #fff; border: none; padding: 15px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; text-transform: uppercase;">
-                RECOMEÇAR A VIDA
-            </button>
-        </div>
-    `;
-}
-
-// LISTENERS
+// Teclado
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') jump();
 });
 
-// FIX MOBILE: Adicionado { passive: false } para permitir o preventDefault()
-document.addEventListener('touchstart', jump, { passive: false });
+// Toque na tela (QUALQUER LUGAR DA TELA)
+// Usamos 'pointerdown' que funciona melhor em navegadores mobile modernos que o touchstart
+document.addEventListener('pointerdown', (e) => {
+    if (gameActive) {
+        jump(e);
+    }
+}, { passive: false });

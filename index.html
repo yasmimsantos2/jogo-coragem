@@ -1,64 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CORAGEM: O ABISMO</title>
+    <!-- Link para o CSS -->
     <link rel="stylesheet" href="Style.css">
-    <!-- O defer garante que o JS carregue depois do HTML -->
+    <!-- Link para o JavaScript (o 'defer' garante que o script carregue após o HTML) -->
     <script src="JS/Script.js" defer></script>
 </head>
+
 <body>
 
-    <!-- TELA INICIAL: Seleção de Personagem -->
-    <div id="screen-start" class="Game-Board">
-        <header>
-            <h1>CORAGEM</h1>
-        </header>
+    <div class="Game-Board">
+        <!-- Botão para alternar Tela Cheia -->
+        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Tela Cheia">⛶</button>
 
-        <section class="intro-text">
-            <p>Você buscou a luz, mas o escuro te encontrou primeiro. Muitos caminham por aqui, mas poucos estão de fato presentes.</p>
-            <p>Se vire para despertar ou aceite a conexão inerte com o seu medo.</p>
-            <p>Sua alma será o reflexo das suas escolhas.</p>
-            <h2 class="selection-title">ESCOLHA SUA PERSONAGEM:</h2>
-        </section>
+        <!-- Fundo Estelar -->
+        <div class="stars-container"></div>
 
-        <div class="character-selection">
-            <div class="character-card">
-                <img src="IMG/Darlin.png" alt="Estilo 1">
-                <p>Estilo 1</p>
-                <button class="btn-select" onclick="startGame(1)">SELECIONAR</button>
-            </div>
+        <!-- TELA 1: INÍCIO E SELEÇÃO DE PERSONAGEM -->
+        <div id="screen-start" class="screen">
+            <h1 class="game-title">CORAGEM</h1>
+            <p class="story-text">
+                Você buscou a luz, mas o escuro te encontrou primeiro. <br>
+                Muitos caminham por aqui, mas poucos estão de fato presentes. <br><br>
+                <strong>Se vire para despertar ou aceite a conexão inerte com o seu medo. <br>
+                    Sua alma será o reflexo das suas escolhas.</strong>
 
-            <div class="character-card">
-                <img src="IMG/V2.png" alt="Estilo 2">
-                <p>Estilo 2</p>
-                <button class="btn-select" onclick="startGame(2)">SELECIONAR</button>
-            </div>
+            <p class="selection-call">ESCOLHA SUA PERSONAGEM:</p>
 
-            <div class="character-card">
-                <img src="IMG/V3.png" alt="Estilo 3">
-                <p>Estilo 3</p>
-                <button class="btn-select" onclick="startGame(3)">SELECIONAR</button>
+            <div class="character-selection">
+                <!-- Estilo 1 (Darlin) -->
+                <div class="char-card" onclick="startGame(1)">
+                    <img src="IMG/Darlin.png" alt="Estilo 1">
+                    <span>Estilo 1</span>
+                </div>
+
+                <!-- Estilo 2 (V2) -->
+                <div class="char-card" onclick="startGame(2)">
+                    <img src="IMG/V2.png" alt="Estilo 2">
+                    <span>Estilo 2</span>
+                </div>
+
+                <!-- Estilo 3 (V3) -->
+                <div class="char-card" onclick="startGame(3)">
+                    <img src="IMG/V3.png" alt="Estilo 3">
+                    <span>Estilo 3</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- TELA DE JOGO: Onde a ação acontece -->
-    <div id="screen-game" style="display: none;">
-        <div class="score">SALTOS: <span id="jump-count">0</span></div>
-        <div class="game-container">
-            <img src="IMG/Darlin.png" class="Jogadora">
-            <img src="IMG/pipe.png" class="pipe">
+        <!-- TELA 2: ÁREA ATIVA DO JOGO -->
+        <div id="screen-game" class="screen" style="display: none;">
+            <!-- Contador de Pulos -->
+            <div class="score">Súplicas: <span id="jump-count">0</span> / 10</div>
+
+            <!-- Imagem da Jogadora (src definida via JS) -->
+            <img src="" class="Jogadora" alt="Jogador">
+
+            <!-- Obstáculo (Monstro que se move) -->
+            <img src="IMG/Monstro2.png" class="pipe" alt="Obstáculo">
         </div>
-    </div>
 
-    <!-- TELA DE FIM: Game Over ou Vitória -->
-    <div id="screen-end" style="display: none;">
-        <div id="end-content">
-            <!-- O JavaScript vai preencher isso aqui automaticamente -->
+        <!-- TELA 3: FINAL DINÂMICO (VITÓRIA OU GAME OVER) -->
+        <div id="screen-end" class="screen" style="display: none;">
+            <!-- O conteúdo aqui será gerado dinamicamente pelo Script.js -->
+            <div id="end-content"></div>
+
         </div>
     </div>
 
 </body>
+
 </html>
