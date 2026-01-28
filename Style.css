@@ -1,94 +1,109 @@
-/* Configuração Geral */
+/* --- CONFIGURAÇÃO DE TELA E ROLAGEM --- */
+html,
 body {
     margin: 0;
     padding: 0;
-    background-color: #0b0b0e; /* Fundo escuro profundo */
+    width: 100%;
+    /* O segredo está aqui: min-height garante que o fundo cubra tudo, mesmo com rolagem */
+    min-height: 100vh;
+    background-color: #0b0b0e;
     color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    /* Permite rolagem vertical no celular */
+    font-family: Arial, sans-serif;
+
+    /* Ativa a rolagem vertical e remove a horizontal indesejada */
     overflow-y: auto;
     overflow-x: hidden;
-    min-height: 100vh;
+    display: block;
+    /* Deixa a rolagem mais suave no celular */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Container Principal */
+/* --- CONTAINER DO JOGO --- */
 .Game-Board {
-    width: 95%;
-    max-width: 800px;
-    padding: 40px 20px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    /* Padding generoso para o conteúdo não colar nas bordas do celular */
+    padding: 20px 15px 80px 15px; 
     text-align: center;
     box-sizing: border-box;
 }
 
 h1 {
-    font-size: 3rem;
-    color: #4A74F3; /* Azul L'Oréal */
-    margin-bottom: 20px;
+    /* clamp ajuda a fonte a diminuir sozinha em telas pequenas */
+    font-size: clamp(1.8rem, 10vw, 3.5rem);
+    color: #4A74F3;
     letter-spacing: 5px;
+    margin-bottom: 20px;
 }
 
 .intro-text p {
-    font-size: 1.2rem;
-    line-height: 1.6;
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    line-height: 1.5;
     margin-bottom: 15px;
-    color: #d4d9f0;
+    padding: 0 10px;
 }
 
-.selection-title {
-    margin-top: 30px;
-    font-size: 1.5rem;
-    text-transform: uppercase;
-}
-
-/* Seleção de Personagens */
+/* --- LAYOUT DOS PERSONAGENS --- */
 .character-selection {
     display: flex;
-    flex-wrap: wrap; /* Faz as personagens descerem no celular */
+    /* flex-wrap: wrap faz os personagens "pularem" para baixo no celular */
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
     margin-top: 30px;
 }
 
 .character-card {
     background: #161a2e;
     border: 2px solid #2649B2;
-    border-radius: 15px; /* Bordas arredondadas padrão L'OréalGPT */
-    padding: 20px;
-    width: 160px;
-    transition: transform 0.3s, border-color 0.3s;
+    border-radius: 15px;
+    padding: 15px;
+    /* Largura flexível para não quebrar em telas minúsculas */
+    width: 140px; 
+    text-align: center;
+    transition: transform 0.3s ease;
 }
 
 .character-card:hover {
-    transform: translateY(-10px);
-    border-color: #8E7DE3;
+    transform: translateY(-5px);
+    border-color: #4A74F3;
 }
 
 .character-card img {
     width: 100%;
+    max-width: 100px;
     height: auto;
-    image-rendering: pixelated; /* Mantém o estilo Pixel Art nítido */
+    image-rendering: pixelated;
+    margin-bottom: 10px;
 }
 
 .btn-select {
-    background-color: #4A74F3;
+    background: #4A74F3;
     color: white;
     border: none;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    width: 100%;
     margin-top: 10px;
 }
 
-.btn-select:hover {
-    background-color: #8E7DE3;
+/* --- AJUSTES ESPECÍFICOS PARA TELAS MUITO PEQUENAS (Menores que 350px) --- */
+@media (max-width: 350px) {
+    .character-card {
+        width: 120px; /* Diminui um pouco mais o card em telas tipo iPhone SE antigo */
+    }
+    h1 {
+        letter-spacing: 2px;
+    }
 }
 
-/* Customização da Barra de Rolagem */
+/* --- ESTILO DA BARRA DE ROLAGEM --- */
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -97,9 +112,19 @@ h1 {
 
 ::-webkit-scrollbar-thumb {
     background: #2649B2;
-    border-radius: 5px;
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background: #4A74F3;
+}
+
+/* --- CLASSES EXTRAS PARA O JOGO (IMPORTANTE PARA O JS) --- */
+#screen-game, #screen-end {
+    width: 100%;
+    height: 100vh;
+    display: none; /* Começam escondidos */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
